@@ -1,0 +1,112 @@
+# Supply Chain Forecasting Configuration
+# User timezone: America/Lima
+
+data:
+  # Path to Excel file (relative to project root or absolute)
+  excel_path: "C:\\Users\\ayrto\\OneDrive\\Escritorio\\Python\\demand_data.xlsx"
+  sheet_name: "Sheet1"  # or null for first sheet
+  
+  # Column mapping
+  date_column: "date"
+  target_column: "demand"
+  exogenous_columns:
+    - "price"
+    - "promo_flag"
+    - "lead_time_days"
+    - "stock_on_hand"
+    - "pos_count"
+    - "stockout_flag"
+  
+  # Time series properties
+  frequency: "MS"  # Month Start frequency (use 'D' for daily, 'W' for weekly, etc.)
+  timezone: "America/Lima"
+
+model:
+  # SARIMAX order parameters
+  # If null, will use auto_arima from pmdarima
+  order: null  # (p, d, q) e.g., [1, 1, 1]
+  seasonal_order: null  # (P, D, Q, s) e.g., [1, 1, 1, 12]
+  
+  # Auto ARIMA settings (used when order/seasonal_order are null)
+  auto_arima:
+    start_p: 0
+    start_q: 0
+    max_p: 5
+    max_q: 5
+    start_P: 0
+    start_Q: 0
+    max_P: 2
+    max_Q: 2
+    m: 12  # Seasonal period (12 for monthly data)
+    seasonal: true
+    stationary: false
+    information_criterion: "aic"
+    trace: true
+    error_action: "ignore"
+    suppress_warnings: true
+    stepwise: true
+    n_jobs: -1
+
+forecasting:
+  # Forecast horizon (number of periods ahead)
+  horizon: 12
+  
+  # Train/test split ratio
+  test_size: 0.2
+  
+  # Confidence intervals
+  alpha: 0.05  # 95% confidence interval
+
+evaluation:
+  # Metrics to compute
+  metrics:
+    - "MAE"
+    - "RMSE"
+    - "MAPE"
+    - "R2"
+  
+  # Backtesting
+  backtesting:
+    n_splits: 5
+    min_train_size: 24  # Minimum training periods
+
+output:
+  # Output directories
+  models_dir: "models"
+  plots_dir: "outputs/plots"
+  forecasts_dir: "outputs/forecasts"
+  metrics_dir: "outputs/metrics"
+  
+  # Plot settings
+  plots:
+    figsize: [14, 6]
+    dpi: 100
+    style: "seaborn-v0_8-darkgrid"
+
+gridsearch:
+  # Grid search parameter space
+  param_grid:
+    order:
+      p: [0, 1, 2]
+      d: [0, 1]
+      q: [0, 1, 2]
+    seasonal_order:
+      P: [0, 1]
+      D: [0, 1]
+      Q: [0, 1]
+      s: [12]
+
+# S&OP Configuration (opcional - se ejecuta si enabled: true)
+sop:
+  enabled: false  # Cambiar a true para activar optimizacion S&OP
+  
+  # Archivos de entrada S&OP (opcional - si no existen, usa valores por defecto)
+  inventory_policies_path: null  # "data/inventory_policies.xlsx"
+  supply_plan_path: null  # "data/supply_plan.xlsx"
+  
+  # Nivel de servicio objetivo
+  service_level: 0.95  # 95% nivel de servicio
+  
+  # Output
+  output_dir: "outputs/sop"
+  charts_dir: "outputs/sop/charts"
